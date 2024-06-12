@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="chat-window">
+      <div id="chat-header">
+        <span id="chat-title"></span>
+        <button onclick="closeChat()">✖</button>
+      </div>
+      <div id="chat-messages"></div>
+      <div id="chat-input">
+        <input
+          type="text"
+          id="userInput"
+          placeholder="Escribe tu mensaje aquí..."
+        />
+        <button onclick="sendMessage()">Enviar</button>
+      </div>
+    </div>
+
+    <script>
+      // Obtener los parámetros del iframe
+      const params = new URLSearchParams(window.location.search);
+      const color = params.get("color") || "#007bff";
+      const title = params.get("title") || "Asistente de Lazzar Solutions";
+      const font = params.get("font") || "Arial";
+
+      // Aplicar los estilos personalizados
+      document.getElementById("chat-title").innerText = title;
+      document.getElementById("chat-header").style.backgroundColor = color;
+      document.body.style.fontFamily = font;
+
+      function closeChat() {
+        window.parent.document.getElementById("chat-iframe").style.display =
+          "none";
+        window.parent.document.getElementById("chat-button").style.display =
+          "block";
+      }
+
+      async function sendMessage() {
+        const userInput = document.getElementById("userInput").value;
+        if (!userInput.trim()) return;
+
+        const messages = document.getElementById("chat-messages");
+        const userMessage = document.createElement("div");
+        userMessage.textContent = `Usuario: ${userInput}`;
+        messages.appendChild(userMessage);
+
+        const response = await fetch("/api/message", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: userInput }),
+        });
+
+        const data = await response.json();
+        const aiMessage = document.createElement("div");
+        aiMessage.textContent = `AI: ${data.response}`;
+        messages.appendChild(aiMessage);
+
+        document.getElementById("userInput").value = "";
+        messages.scrollTop = messages.scrollHeight;
+      }
+    </script>
+  </body>
+</html>
